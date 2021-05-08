@@ -1,3 +1,6 @@
 # bme280-driver
 
-![arch](https://user-images.githubusercontent.com/21075532/117534189-f1f9f900-b022-11eb-8761-3fe5c37b60fc.png)
+## Struct
+
+![arch](https://user-images.githubusercontent.com/21075532/117534305-574dea00-b023-11eb-8d25-84accb84062f.png)
+
