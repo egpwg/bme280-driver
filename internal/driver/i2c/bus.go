@@ -6,7 +6,7 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/egpwg/bme280-driver/internal/common"
+	"github.com/egpwg/bme280-driver/internal/driver/util"
 )
 
 type Bus interface {
@@ -15,9 +15,9 @@ type Bus interface {
 }
 
 type i2cBus struct {
-	name  string
-	path  string
-	ioctl common.Ioctler
+	name string
+	path string
+	file util.File
 }
 
 func (i *i2cBus) Name() (name string) {
@@ -66,7 +66,7 @@ func (i *i2cBus) RdWr(addr uint16, w, r []byte) (err error) {
 		nmsgs: start,
 	}
 
-	ep := i.ioctl.Ioctl(uintptr(ioctlRdwr), uintptr(unsafe.Pointer(&data)))
+	ep := i.file.Ioctl(uintptr(ioctlRdwr), uintptr(unsafe.Pointer(&data)))
 	if ep != 0 {
 		return ep
 	}
@@ -74,16 +74,16 @@ func (i *i2cBus) RdWr(addr uint16, w, r []byte) (err error) {
 	return nil
 }
 
-func Open(name string) (file *common.File, err error) {
-	for _, b := range i2cDrv.bus {
+func Open(name string) (bus *i2cBus, err error) {
+	for i, b := range i2cDrv.bus {
 		if b.Name() == name {
-			err = file.Open(b.path)
+			err = i2cDrv.bus[i].file.Open(b.path)
 			if err != nil {
 				log.Println(err)
 				return nil, err
 			}
 
-			return file, nil
+			return &i2cDrv.bus[i], nil
 		}
 	}
 
