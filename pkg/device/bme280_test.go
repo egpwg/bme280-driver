@@ -82,7 +82,7 @@ func TestGetTemperatureValue(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("temperature: %.2f", temp)
+	fmt.Printf("Temperature: %.2f", temp)
 }
 
 func TestGetPressureValue(t *testing.T) {
@@ -108,7 +108,7 @@ func TestGetPressureValue(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("temperature: %.2f", pres)
+	fmt.Printf("Pressure: %.2f", pres)
 }
 
 func TestGetHumidityValue(t *testing.T) {
@@ -134,7 +134,7 @@ func TestGetHumidityValue(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("temperature: %.2f", humi)
+	fmt.Printf("Humitidy: %.2f", humi)
 }
 
 func TestReset(t *testing.T) {
