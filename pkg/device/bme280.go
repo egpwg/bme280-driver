@@ -72,22 +72,13 @@ func (b *Bme280) SetUserMode(mode int) (err error) {
 	b.sensorMode = set.sensorMode
 	b.filter = set.filter
 
-	ctrlMesg := []byte{regAddrCtrlMeas, byte(set.os["Temperature"])<<5 | byte(set.os["Pressure"])<<2 | byte(b.sensorMode)}
-	err = b.writeToRegister(ctrlMesg)
-	if err != nil {
-		log.Println(err)
-		return err
+	buf := []byte{
+		regAddrCtrlMeas, byte(set.os["Temperature"])<<5 | byte(set.os["Pressure"])<<2 | byte(Sleep),
+		regAddrCtrlHum, byte(set.os["Humidity"]),
+		regAddrConfig, byte(TSb1000)<<5 | byte(b.filter)<<2,
+		regAddrCtrlMeas, byte(set.os["Temperature"])<<5 | byte(set.os["Pressure"])<<2 | byte(b.sensorMode),
 	}
-
-	ctrlHum := []byte{regAddrCtrlHum, byte(set.os["Humidity"])}
-	err = b.writeToRegister(ctrlHum)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	config := []byte{regAddrConfig, byte(TSb1000)<<5 | byte(b.filter)<<2}
-	err = b.writeToRegister(config)
+	err = b.writeToRegister(buf)
 	if err != nil {
 		log.Println(err)
 		return err

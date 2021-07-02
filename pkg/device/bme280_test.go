@@ -31,6 +31,27 @@ func TestSetUserMode(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	var ctlHum [1]byte
+	err = dev.readFromRegister(regAddrCtrlHum, ctlHum[:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("ctlHum: ", ctlHum)
+
+	var config [1]byte
+	err = dev.readFromRegister(regAddrConfig, config[:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("config: ", config)
+
+	var ctlMeas [1]byte
+	err = dev.readFromRegister(regAddrCtrlMeas, ctlMeas[:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("ctlMeas: ", ctlMeas)
 }
 
 func TestGetSenseValue(t *testing.T) {
@@ -159,4 +180,25 @@ func TestReset(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	var ctlHum [1]byte
+	err = dev.readFromRegister(regAddrCtrlHum, ctlHum[:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("ctlHum: ", ctlHum)
+
+	var config [1]byte
+	err = dev.readFromRegister(regAddrConfig, config[:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("config: ", config)
+
+	var ctlMeas [1]byte
+	err = dev.readFromRegister(regAddrCtrlMeas, ctlMeas[:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("ctlMeas: ", ctlMeas)
 }
