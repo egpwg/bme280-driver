@@ -12,6 +12,7 @@ import (
 type Bus interface {
 	Name() (name string)
 	RdWr(addr uint16, w, r []byte) (err error)
+	Close() (err error)
 }
 
 type i2cBus struct {
@@ -46,7 +47,8 @@ const (
 )
 
 func (i *i2cBus) RdWr(addr uint16, w, r []byte) (err error) {
-	msg := []i2cMsg{}
+	start := 1
+	msg := [2]i2cMsg{}
 	if len(w) != 0 {
 		msg[0].addr = addr
 		msg[0].flags = flagWR
@@ -54,13 +56,13 @@ func (i *i2cBus) RdWr(addr uint16, w, r []byte) (err error) {
 		msg[0].buf = uintptr(unsafe.Pointer(&w[0]))
 	}
 	if len(r) != 0 {
+		start = 2
 		msg[1].addr = addr
 		msg[1].flags = flagRD
 		msg[1].length = uint16(len(r))
 		msg[1].buf = uintptr(unsafe.Pointer(&r[0]))
 	}
 
-	start := 2
 	data := i2cRdwrIoctlData{
 		msgs:  uintptr(unsafe.Pointer(&msg)),
 		nmsgs: start,
@@ -72,6 +74,10 @@ func (i *i2cBus) RdWr(addr uint16, w, r []byte) (err error) {
 	}
 
 	return nil
+}
+
+func (i *i2cBus) Close() (err error) {
+	return i.file.Close()
 }
 
 func Open(name string) (bus *i2cBus, err error) {

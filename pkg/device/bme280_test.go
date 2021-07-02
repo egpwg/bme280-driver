@@ -16,17 +16,18 @@ func TestNewDevice(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	bus, err := pkgI2c.Open("i2c-0")
+	bus, err := pkgI2c.Open("i2c-1")
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer bus.Close()
 
 	dev, err := NewDevice(bus)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = dev.SetUserMode(Weather)
+	err = dev.SetUserMode(1)
 	if err != nil {
 		log.Fatal(err)
 	}

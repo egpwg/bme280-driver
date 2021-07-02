@@ -1,7 +1,23 @@
 package device
 
+// bme280 address
 const (
 	DEVICE_ADDR = 0x77
+)
+
+// register address
+const (
+	regAddrCalib1   = 0x88
+	regAddrChipID   = 0xD0
+	regAddrReset    = 0xE0
+	regAddrCalib2   = 0xE1
+	regAddrCtrlHum  = 0xF2
+	regAddrStatus   = 0xF3
+	regAddrCtrlMeas = 0xF4
+	regAddrConfig   = 0xF5
+	regAddrPress    = 0xF7
+	regAddrTemp     = 0xFA
+	regAddrHumi     = 0xFD
 )
 
 type UserMode int
@@ -161,18 +177,3 @@ func (c *Calibration) CompensateHumidityInt32(tFine, adcH int32) (H uint32) {
 
 	return uint32(h) >> 12
 }
-
-// register address
-const (
-	regAddrCalib1   = 0x88
-	regAddrChipID   = 0xD0
-	regAddrReset    = 0xE0
-	regAddrCalib2   = 0xE1
-	regAddrCtrlHum  = 0xF2
-	regAddrStatus   = 0xF3
-	regAddrCtrlMeas = 0xF4
-	regAddrConfig   = 0xF5
-	regAddrPress    = 0xF7
-	regAddrTemp     = 0xFA
-	regAddrHumi     = 0xFD
-)
