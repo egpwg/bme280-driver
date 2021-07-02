@@ -43,6 +43,8 @@ const (
 )
 
 func (m UserMode) GetOversampling() (os map[string]Oversampling) {
+	os = make(map[string]Oversampling)
+
 	switch m {
 	case Weather:
 		os["Temperature"] = Oversampling1
