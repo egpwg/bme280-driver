@@ -32,7 +32,7 @@ func TestNewDevice(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	data, err := dev.GetSenseData()
+	data, err := dev.GetSenseValue()
 	if err != nil {
 		log.Fatal(err)
 	}

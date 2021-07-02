@@ -95,7 +95,7 @@ type sensorValue struct {
 }
 
 // GetSenseData get sense all value: temperature, pressure, humidity
-func (b *Bme280) GetSenseData() (data *sensorValue, err error) {
+func (b *Bme280) GetSenseValue() (data *sensorValue, err error) {
 	for {
 		status, err := b.checkStatus()
 		if err != nil {
