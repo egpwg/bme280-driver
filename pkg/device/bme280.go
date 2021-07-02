@@ -95,7 +95,7 @@ type sensorValue struct {
 }
 
 // GetSenseData get sense all value: temperature, pressure, humidity
-func (b *Bme280) GetSenseValue() (data *sensorValue, err error) {
+func (b *Bme280) GetSenseValue() (value *sensorValue, err error) {
 	for {
 		status, err := b.checkStatus()
 		if err != nil {
@@ -115,17 +115,21 @@ func (b *Bme280) GetSenseValue() (data *sensorValue, err error) {
 
 	tRaw := int32(buf[3])<<12 | int32(buf[4])<<4 | int32(buf[5])>>4
 	tFine, t := b.calib.CompensateTemperatureInt32(tRaw)
-	data.Temperature = float32(t / 100)
+	temperature := float32(t / 100)
 
 	pRaw := int32(buf[0])<<12 | int32(buf[1])<<4 | int32(buf[2])>>4
 	p := b.calib.CompensatePressureInt64(tFine, pRaw)
-	data.Pressure = float32(p / 256)
+	pressure := float32(p / 256)
 
 	hRaw := int32(buf[6])<<8 | int32(buf[7])
 	h := b.calib.CompensateHumidityInt32(tFine, hRaw)
-	data.Humidity = float32(h / 1024)
+	humidity := float32(h / 1024)
 
-	return
+	return &sensorValue{
+		Temperature: temperature,
+		Pressure:    pressure,
+		Humidity:    humidity,
+	}, nil
 }
 
 // GetTemperatureValue get temperature from sensor register
