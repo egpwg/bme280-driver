@@ -24,19 +24,22 @@ func NewDevice(bus i2c.Bus) (bme280 *Bme280, err error) {
 	}
 
 	if err = bme280.checkChipID(); err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
 	var (
-		tph [0xA2 - 0x88]byte
-		h   [0xE8 - 0xE1]byte
+		tph [0xA2 - regAddrCalib1]byte
+		h   [0xE8 - regAddrCalib2]byte
 	)
 	err = bme280.readFromRegister(regAddrCalib1, tph[:])
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	err = bme280.readFromRegister(regAddrCalib2, h[:])
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	bme280.calib = newCalibration(tph[:], h[:])
@@ -54,7 +57,7 @@ func (b *Bme280) checkChipID() (err error) {
 	}
 
 	switch chipId[0] {
-	case 0x60:
+	case chipIdValue:
 	default:
 		return errors.New("The device is not bme280")
 	}
@@ -65,20 +68,25 @@ func (b *Bme280) checkChipID() (err error) {
 // SetUserMode set user mode such weather, indoor
 func (b *Bme280) SetUserMode(mode int) (err error) {
 	b.userMode = UserMode(mode)
-	os := b.userMode.GetOversampling()
-	ctrlMesg := []byte{regAddrCtrlMeas, byte(os["Temperature"])<<5 | byte(os["Pressure"])<<2 | byte(b.sensorMode)}
+	set := b.userMode.getModeSetting()
+	b.sensorMode = set.sensorMode
+	b.filter = set.filter
+
+	ctrlMesg := []byte{regAddrCtrlMeas, byte(set.os["Temperature"])<<5 | byte(set.os["Pressure"])<<2 | byte(b.sensorMode)}
 	err = b.writeToRegister(ctrlMesg)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	ctrlHum := []byte{regAddrCtrlHum, byte(os["Humidity"])}
+
+	ctrlHum := []byte{regAddrCtrlHum, byte(set.os["Humidity"])}
 	err = b.writeToRegister(ctrlHum)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	config := []byte{regAddrConfig, byte(TSb1000)<<5 | byte(FilterCoefOff)<<2}
+
+	config := []byte{regAddrConfig, byte(TSb1000)<<5 | byte(b.filter)<<2}
 	err = b.writeToRegister(config)
 	if err != nil {
 		log.Println(err)
@@ -114,15 +122,15 @@ func (b *Bme280) GetSenseValue() (value *sensorValue, err error) {
 	}
 
 	tRaw := int32(buf[3])<<12 | int32(buf[4])<<4 | int32(buf[5])>>4
-	tFine, t := b.calib.CompensateTemperatureInt32(tRaw)
+	tFine, t := b.calib.compensateTemperatureInt32(tRaw)
 	temperature := float32(t / 100)
 
 	pRaw := int32(buf[0])<<12 | int32(buf[1])<<4 | int32(buf[2])>>4
-	p := b.calib.CompensatePressureInt64(tFine, pRaw)
+	p := b.calib.compensatePressureInt64(tFine, pRaw)
 	pressure := float32(p / 256)
 
 	hRaw := int32(buf[6])<<8 | int32(buf[7])
-	h := b.calib.CompensateHumidityInt32(tFine, hRaw)
+	h := b.calib.compensateHumidityInt32(tFine, hRaw)
 	humidity := float32(h / 1024)
 
 	return &sensorValue{
@@ -152,7 +160,7 @@ func (b *Bme280) GetTemperatureValue() (temperature float32, err error) {
 	}
 
 	tRaw := int32(buf[0])<<12 | int32(buf[1])<<4 | int32(buf[2])>>4
-	_, t := b.calib.CompensateTemperatureInt32(tRaw)
+	_, t := b.calib.compensateTemperatureInt32(tRaw)
 	temperature = float32(t / 100)
 
 	return
@@ -178,10 +186,10 @@ func (b *Bme280) GetPressureValue() (pressure float32, err error) {
 	}
 
 	tRaw := int32(buf[3])<<12 | int32(buf[4])<<4 | int32(buf[5])>>4
-	tFine, _ := b.calib.CompensateTemperatureInt32(tRaw)
+	tFine, _ := b.calib.compensateTemperatureInt32(tRaw)
 
 	pRaw := int32(buf[0])<<12 | int32(buf[1])<<4 | int32(buf[2])>>4
-	p := b.calib.CompensatePressureInt64(tFine, pRaw)
+	p := b.calib.compensatePressureInt64(tFine, pRaw)
 	pressure = float32(p / 256)
 
 	return
@@ -207,10 +215,10 @@ func (b *Bme280) GetHumidityValue() (humidity float32, err error) {
 	}
 
 	tRaw := int32(buf[0])<<12 | int32(buf[1])<<4 | int32(buf[2])>>4
-	tFine, _ := b.calib.CompensateTemperatureInt32(tRaw)
+	tFine, _ := b.calib.compensateTemperatureInt32(tRaw)
 
 	hRaw := int32(buf[3])<<8 | int32(buf[4])
-	h := b.calib.CompensateHumidityInt32(tFine, hRaw)
+	h := b.calib.compensateHumidityInt32(tFine, hRaw)
 	humidity = float32(h / 1024)
 
 	return
@@ -218,7 +226,7 @@ func (b *Bme280) GetHumidityValue() (humidity float32, err error) {
 
 // Reset reset sensor all mode
 func (b *Bme280) Reset() (err error) {
-	reset := []byte{regAddrReset, 0xB6}
+	reset := []byte{regAddrReset, resetValue}
 	if err = b.writeToRegister(reset); err != nil {
 		log.Println(err)
 		return err

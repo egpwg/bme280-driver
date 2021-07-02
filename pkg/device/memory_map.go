@@ -20,6 +20,12 @@ const (
 	regAddrHumi     = 0xFD
 )
 
+// some const about vaule of register
+const (
+	chipIdValue = 0x60
+	resetValue  = 0xB6
+)
+
 type UserMode int
 
 const (
@@ -42,20 +48,36 @@ const (
 	Oversampling16 Oversampling = 0x05 // oversampling * 16
 )
 
-func (m UserMode) GetOversampling() (os map[string]Oversampling) {
-	os = make(map[string]Oversampling)
+type modeSetting struct {
+	os         map[string]Oversampling
+	filter     FilterCoef
+	sensorMode SensorMode
+}
+
+func (m UserMode) getModeSetting() (set *modeSetting) {
+	var (
+		os         = make(map[string]Oversampling)
+		filter     FilterCoef
+		sensorMode SensorMode
+	)
 
 	switch m {
 	case Weather:
 		os["Temperature"] = Oversampling1
 		os["Pressure"] = Oversampling1
 		os["Humidity"] = Oversampling1
+		filter = FilterCoefOff
+		sensorMode = Forced
 	case HumiSensing:
 	case Indoor:
 	case Gaming:
 	}
 
-	return
+	return &modeSetting{
+		os:         os,
+		filter:     filter,
+		sensorMode: sensorMode,
+	}
 }
 
 type SensorMode uint8
@@ -131,7 +153,7 @@ func newCalibration(tph, h []byte) (c Calibration) {
 	return c
 }
 
-func (c *Calibration) CompensateTemperatureInt32(adcT int32) (tFine, T int32) {
+func (c *Calibration) compensateTemperatureInt32(adcT int32) (tFine, T int32) {
 	var t1, t2 int32
 	t1 = (adcT>>3 - int32(c.DigT1)<<1) * int32(c.DigT2) >> 11
 	t2 = (((((adcT >> 4) - (int32(c.DigT1))) * ((adcT >> 4) - (int32(c.DigT1)))) >> 12) *
@@ -141,7 +163,7 @@ func (c *Calibration) CompensateTemperatureInt32(adcT int32) (tFine, T int32) {
 	return tFine, T
 }
 
-func (c *Calibration) CompensatePressureInt64(tFine, adcP int32) (P uint32) {
+func (c *Calibration) compensatePressureInt64(tFine, adcP int32) (P uint32) {
 	var p, p1, p2 int64
 	p1 = int64(tFine) - 128000
 	p2 = p1 * p1 * int64(c.DigP6)
@@ -160,7 +182,7 @@ func (c *Calibration) CompensatePressureInt64(tFine, adcP int32) (P uint32) {
 	return uint32((p+p1+p2)>>8 + int64(c.DigP7)<<4)
 }
 
-func (c *Calibration) CompensateHumidityInt32(tFine, adcH int32) (H uint32) {
+func (c *Calibration) compensateHumidityInt32(tFine, adcH int32) (H uint32) {
 	var h int32
 	h = tFine - int32(76800)
 	h1 := (adcH<<14 - int32(c.DigH4)<<20 - int32(c.DigH5)*h + int32(16384)) >> 15
