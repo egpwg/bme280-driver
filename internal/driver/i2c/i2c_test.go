@@ -12,18 +12,18 @@ const (
 )
 
 func TestI2cRead(t *testing.T) {
-	err := i2cDrv.Init()
+	_, err := i2cDrv.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println("len: ", len(i2cDrv.bus))
 
-	file, err := Open(i2cDrv.bus[0].name)
+	bus, err := Open(i2cDrv.bus[0].name)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer bus.file.Close()
 
 	var chip [1]byte
 	err = i2cDrv.bus[0].RdWr(bme280, []byte{chipId}, chip[:])
@@ -32,4 +32,25 @@ func TestI2cRead(t *testing.T) {
 	}
 
 	fmt.Println("chip id: ", chip[0])
+}
+
+func TestI2cWrite(t *testing.T) {
+	_, err := i2cDrv.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("len: ", len(i2cDrv.bus))
+
+	bus, err := Open(i2cDrv.bus[0].name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer bus.file.Close()
+
+	ctrlMesg := []byte{0xF2, byte(0x01)}
+	err = i2cDrv.bus[0].RdWr(0x77, ctrlMesg, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

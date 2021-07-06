@@ -7,7 +7,7 @@ import (
 
 type Driver interface {
 	Name() (name string)
-	Init() (err error)
+	Init() (bus []string, err error)
 }
 
 var drivers = map[string]Driver{}
