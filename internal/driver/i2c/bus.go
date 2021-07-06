@@ -6,18 +6,19 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/egpwg/bme280-driver/internal/common"
+	"github.com/egpwg/bme280-driver/internal/driver/util"
 )
 
 type Bus interface {
 	Name() (name string)
 	RdWr(addr uint16, w, r []byte) (err error)
+	Close() (err error)
 }
 
 type i2cBus struct {
-	name  string
-	path  string
-	ioctl common.Ioctler
+	name string
+	path string
+	file util.File
 }
 
 func (i *i2cBus) Name() (name string) {
@@ -46,7 +47,8 @@ const (
 )
 
 func (i *i2cBus) RdWr(addr uint16, w, r []byte) (err error) {
-	msg := []i2cMsg{}
+	start := 1
+	msg := [2]i2cMsg{}
 	if len(w) != 0 {
 		msg[0].addr = addr
 		msg[0].flags = flagWR
@@ -54,19 +56,19 @@ func (i *i2cBus) RdWr(addr uint16, w, r []byte) (err error) {
 		msg[0].buf = uintptr(unsafe.Pointer(&w[0]))
 	}
 	if len(r) != 0 {
+		start = 2
 		msg[1].addr = addr
 		msg[1].flags = flagRD
 		msg[1].length = uint16(len(r))
 		msg[1].buf = uintptr(unsafe.Pointer(&r[0]))
 	}
 
-	start := 2
 	data := i2cRdwrIoctlData{
 		msgs:  uintptr(unsafe.Pointer(&msg)),
 		nmsgs: start,
 	}
 
-	ep := i.ioctl.Ioctl(uintptr(ioctlRdwr), uintptr(unsafe.Pointer(&data)))
+	ep := i.file.Ioctl(uintptr(ioctlRdwr), uintptr(unsafe.Pointer(&data)))
 	if ep != 0 {
 		return ep
 	}
@@ -74,16 +76,20 @@ func (i *i2cBus) RdWr(addr uint16, w, r []byte) (err error) {
 	return nil
 }
 
-func Open(name string) (file *common.File, err error) {
-	for _, b := range i2cDrv.bus {
+func (i *i2cBus) Close() (err error) {
+	return i.file.Close()
+}
+
+func Open(name string) (bus *i2cBus, err error) {
+	for i, b := range i2cDrv.bus {
 		if b.Name() == name {
-			err = file.Open(b.path)
+			err = i2cDrv.bus[i].file.Open(b.path)
 			if err != nil {
 				log.Println(err)
 				return nil, err
 			}
 
-			return file, nil
+			return &i2cDrv.bus[i], nil
 		}
 	}
 
