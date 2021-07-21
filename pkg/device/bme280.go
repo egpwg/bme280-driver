@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/egpwg/bme280-driver/internal/driver/i2c"
+	"github.com/egpwg/bme280-driver/pkg/driver/i2c"
 )
 
 type Bme280 struct {
