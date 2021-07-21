@@ -114,15 +114,15 @@ func (b *Bme280) GetSenseValue() (value *sensorValue, err error) {
 
 	tRaw := int32(buf[3])<<12 | int32(buf[4])<<4 | int32(buf[5])>>4
 	tFine, t := b.calib.compensateTemperatureInt32(tRaw)
-	temperature := float32(t / 100)
+	temperature := float32(t) / 100
 
 	pRaw := int32(buf[0])<<12 | int32(buf[1])<<4 | int32(buf[2])>>4
 	p := b.calib.compensatePressureInt64(tFine, pRaw)
-	pressure := float32(p / 256)
+	pressure := float32(p) / 256000
 
 	hRaw := int32(buf[6])<<8 | int32(buf[7])
 	h := b.calib.compensateHumidityInt32(tFine, hRaw)
-	humidity := float32(h / 1024)
+	humidity := float32(h) / 1024
 
 	return &sensorValue{
 		Temperature: temperature,
