@@ -154,50 +154,85 @@ func newCalibration(tph, h []byte) (c Calibration) {
 }
 
 func (c *Calibration) compensateTemperatureInt32(adcT int32) (tFine, T int32) {
-	var t1, t2 int32
-	t1 = (adcT>>3 - int32(c.DigT1)<<1) * int32(c.DigT2) >> 11
-	t2 = (((((adcT >> 4) - (int32(c.DigT1))) * ((adcT >> 4) - (int32(c.DigT1)))) >> 12) *
-		(int32(c.DigT3))) >> 14
-	tFine = t1 + t2
-	T = (tFine*5 + 128) >> 8
-	return tFine, T
+	// var t1, t2 int32
+	// t1 = (adcT>>3 - int32(c.DigT1)<<1) * int32(c.DigT2) >> 11
+	// t2 = (((((adcT >> 4) - (int32(c.DigT1))) * ((adcT >> 4) - (int32(c.DigT1)))) >> 12) *
+	// 	(int32(c.DigT3))) >> 14
+	// tFine = t1 + t2
+	// T = (tFine*5 + 128) >> 8
+	// return tFine, T
+	x := ((adcT>>3 - int32(c.DigT1)<<1) * int32(c.DigT2)) >> 11
+	y := ((((adcT>>4 - int32(c.DigT1)) * (adcT>>4 - int32(c.DigT1))) >> 12) * int32(c.DigT3)) >> 14
+	tFine = x + y
+	return tFine, (tFine*5 + 128) >> 8
 }
 
 func (c *Calibration) compensatePressureInt64(tFine, adcP int32) (P uint32) {
-	var p, p1, p2 int64
-	p1 = int64(tFine) - 128000
-	p2 = p1 * p1 * int64(c.DigP6)
-	p2 = p2 + p1*int64(c.DigP5)<<17
-	p2 = p2 + int64(c.DigP4)<<35
-	p1 = p1*p1*int64(c.DigP3)>>8 + p1*int64(c.DigP2)<<12
-	p1 = (int64(1)<<47 + p1) * int64(c.DigP1) >> 33
-	if p1 == 0 {
+	// var p, p1, p2 int64
+	// p1 = int64(tFine) - 128000
+	// p2 = p1 * p1 * int64(c.DigP6)
+	// p2 = p2 + p1*int64(c.DigP5)<<17
+	// p2 = p2 + int64(c.DigP4)<<35
+	// p1 = p1*p1*int64(c.DigP3)>>8 + p1*int64(c.DigP2)<<12
+	// p1 = (int64(1)<<47 + p1) * int64(c.DigP1) >> 33
+	// if p1 == 0 {
+	// 	return 0
+	// }
+
+	// p = ((1048576-int64(adcP))<<31 - p2) * 3125 / p1
+	// p1 = int64(c.DigP9) * (p >> 13) * (p >> 13) >> 25
+	// p2 = int64(c.DigP8) * p >> 19
+
+	// return uint32((p+p1+p2)>>8 + int64(c.DigP7)<<4)
+
+	x := int64(tFine) - 128000
+	y := x * x * int64(c.DigP6)
+	y += (x * int64(c.DigP5)) << 17
+	y += int64(c.DigP4) << 35
+	x = (x*x*int64(c.DigP3))>>8 + ((x * int64(c.DigP2)) << 12)
+	x = ((int64(1)<<47 + x) * int64(c.DigP1)) >> 33
+	if x == 0 {
 		return 0
 	}
-
-	p = ((1048576-int64(adcP))<<31 - p2) * 3125 / p1
-	p1 = int64(c.DigP9) * (p >> 13) * (p >> 13) >> 25
-	p2 = int64(c.DigP8) * p >> 19
-
-	return uint32((p+p1+p2)>>8 + int64(c.DigP7)<<4)
+	p := ((((1048576 - int64(adcP)) << 31) - y) * 3125) / x
+	x = (int64(c.DigP9) * (p >> 13) * (p >> 13)) >> 25
+	y = (int64(c.DigP8) * p) >> 19
+	return uint32(((p + x + y) >> 8) + (int64(c.DigP7) << 4))
 }
 
 func (c *Calibration) compensateHumidityInt32(tFine, adcH int32) (H uint32) {
-	var h int32
-	h = tFine - int32(76800)
-	h1 := (adcH<<14 - int32(c.DigH4)<<20 - int32(c.DigH5)*h + int32(16384)) >> 15
-	h2 := h * int32(c.DigH6) >> 10
-	h3 := h*int32(c.DigH3)>>11 + 32768
-	h4 := h2*h3>>10 + 2097152
-	h5 := (h4*int32(c.DigH2) + 8192) >> 14
-	h = h1 * h5
-	h = h - h>>15*(h>>15)>>7*int32(c.DigH1)>>4
-	if h < 0 {
-		h = 0
-	}
-	if h > 419430400 {
-		h = 419430400
-	}
+	// var h int32
+	// h = tFine - int32(76800)
+	// h1 := (adcH<<14 - int32(c.DigH4)<<20 - int32(c.DigH5)*h + int32(16384)) >> 15
+	// h2 := h * int32(c.DigH6) >> 10
+	// h3 := h*int32(c.DigH3)>>11 + 32768
+	// h4 := h2*h3>>10 + 2097152
+	// h5 := (h4*int32(c.DigH2) + 8192) >> 14
+	// h = h1 * h5
+	// h = h - h>>15*(h>>15)>>7*int32(c.DigH1)>>4
+	// if h < 0 {
+	// 	h = 0
+	// }
+	// if h > 419430400 {
+	// 	h = 419430400
+	// }
 
-	return uint32(h) >> 12
+	// return uint32(h) >> 12
+
+	x := tFine - 76800
+	x1 := adcH<<14 - int32(c.DigH4)<<20 - int32(c.DigH5)*x
+	x2 := (x1 + 16384) >> 15
+	x3 := (x * int32(c.DigH6)) >> 10
+	x4 := (x * int32(c.DigH3)) >> 11
+	x5 := (x3 * (x4 + 32768)) >> 10
+	x6 := ((x5+2097152)*int32(c.DigH2) + 8192) >> 14
+	x = x2 * x6
+	x = x - ((((x>>15)*(x>>15))>>7)*int32(c.DigH1))>>4
+	if x < 0 {
+		return 0
+	}
+	if x > 419430400 {
+		return 419430400 >> 12
+	}
+	return uint32(x >> 12)
 }
