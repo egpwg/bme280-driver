@@ -9,12 +9,6 @@ import (
 	"github.com/egpwg/bme280-driver/internal/driver/util"
 )
 
-type Bus interface {
-	Name() (name string)
-	RdWr(addr uint16, w, r []byte) (err error)
-	Close() (err error)
-}
-
 type i2cBus struct {
 	name string
 	path string
