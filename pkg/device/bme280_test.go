@@ -77,7 +77,7 @@ func TestGetSenseValue(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Temperature: %.2f, Pressure: %.2f, Humidity: %.2f", data.Temperature, data.Pressure, data.Humidity)
+	fmt.Printf("Temperature: %f, Pressure: %f, Humidity: %f", data.Temperature, data.Pressure, data.Humidity)
 }
 
 func TestGetTemperatureValue(t *testing.T) {
