@@ -16,6 +16,11 @@ const (
 	UMHumiSensing UserMode = 2
 )
 
+type SensorValue struct {
+	Sequence []string
+	All      map[string]float32
+}
+
 func Init() error {
 	// 获取所有驱动信息，如i2c驱动名及其所有总线名
 	// i2c驱动名固定为i2c-driver，总线名固定为i2c-X(如i2c-0、i2c-1)
@@ -67,19 +72,23 @@ func GlobalBME280() *device.Bme280 {
 	return globalBME280
 }
 
-func All() (map[string]float32, error) {
+func All() (*SensorValue, error) {
 	// 获取传感器温度、压力、湿度
 	value, err := GlobalBME280().GetSenseValue()
 	if err != nil {
 		return nil, err
 	}
 
+	seq := [3]string{"Temperature", "Humidity", "Pressure"}
+
 	r := make(map[string]float32)
 	r["Temperature"] = value.Temperature
 	r["Pressure"] = value.Pressure
 	r["Humidity"] = value.Humidity
 
-	return r, nil
+	s := &SensorValue{seq[:], r}
+
+	return s, nil
 }
 
 func Temperature() (float32, error) {
@@ -119,5 +128,8 @@ func Reset() error {
 }
 
 func CloseBus() error {
-	return globalBus.Close()
+	if globalBus != nil {
+		return globalBus.Close()
+	}
+	return nil
 }

@@ -35,12 +35,13 @@ func Command(c string) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		for k, v := range data {
-			if k == "Pressure" {
-				fmt.Printf("%s : %f\n", k, v)
+		allVal := data.All
+		for _, v := range data.Sequence {
+			if v == "Pressure" {
+				fmt.Printf("%s : %f\n", v, allVal[v])
 				continue
 			}
-			fmt.Printf("%s : %.2f\n", k, v)
+			fmt.Printf("%s : %.2f\n", v, allVal[v])
 		}
 	case "t":
 		data, err := model.Temperature()
@@ -70,4 +71,57 @@ func Command(c string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func All() error {
+	singleInit()
+	data, err := model.All()
+	if err != nil {
+		return err
+	}
+	allVal := data.All
+	for _, v := range data.Sequence {
+		if v == "Pressure" {
+			fmt.Printf("%s : %f\n", v, allVal[v])
+			continue
+		}
+		fmt.Printf("%s : %.2f\n", v, allVal[v])
+	}
+	return nil
+}
+
+func Temperature() error {
+	singleInit()
+	t, err := model.Temperature()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Temperature: %.2f\n", t)
+	return nil
+}
+
+func Humidity() error {
+	singleInit()
+	t, err := model.Humidity()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Humidity: %.2f\n", t)
+	return nil
+}
+
+func Pressure() error {
+	singleInit()
+	t, err := model.Pressure()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Pressure: %f\n", t)
+	return nil
+}
+
+func singleInit() {
+	model.Init()
+	// model.Reset()
+	model.SetUserMode(model.UMWeather)
 }

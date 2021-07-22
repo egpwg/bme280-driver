@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/egpwg/bme280-driver/demo/model"
 	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"
@@ -17,8 +16,8 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "demo",
-	Short: "BME280传感器驱动测试工具",
-	Long:  `BME280传感器驱动测试工具-演示使用`,
+	Short: "BME280 driver testing tool",
+	Long:  `BOSCH BME280 driver testing tool`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
@@ -39,7 +38,55 @@ var rootCmd = &cobra.Command{
 				fmt.Println(err.Error())
 			}
 		}
-		err = model.CloseBus()
+		// err = model.CloseBus()
+		// if err != nil {
+		// 	fmt.Println(err.Error())
+		// }
+	},
+}
+
+var allCmd = &cobra.Command{
+	Use:   "all",
+	Short: "Print temperature & humidity & pressure values",
+	Long:  `Print all sensor values: temperature & humidity & pressure`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := All()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	},
+}
+
+var temperatureCmd = &cobra.Command{
+	Use:   "t",
+	Short: "Print temperature value",
+	Long:  `Print sensor value: temperature`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := Temperature()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	},
+}
+
+var humidityCmd = &cobra.Command{
+	Use:   "h",
+	Short: "Print humidity value",
+	Long:  `Print sensor value: humidity`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := Humidity()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	},
+}
+
+var pressureCmd = &cobra.Command{
+	Use:   "p",
+	Short: "Print pressure value",
+	Long:  `Print sensor value: pressure`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := Pressure()
 		if err != nil {
 			fmt.Println(err.Error())
 		}
@@ -49,6 +96,8 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	rootCmd.AddCommand(allCmd, temperatureCmd, humidityCmd, pressureCmd)
+
 	cobra.CheckErr(rootCmd.Execute())
 }
 
