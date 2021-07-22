@@ -8,12 +8,13 @@ import (
 )
 
 type Bme280 struct {
-	devAddr    uint16
-	userMode   UserMode
-	sensorMode SensorMode
-	filter     FilterCoef
-	bus        i2c.Bus
-	calib      Calibration
+	devAddr     uint16
+	userMode    UserMode
+	sensorMode  SensorMode
+	filter      FilterCoef
+	timeStandby TimeStandby
+	bus         i2c.Bus
+	calib       Calibration
 }
 
 // NewDevice new bme280 by bus file descriptor
@@ -66,16 +67,17 @@ func (b *Bme280) checkChipID() (err error) {
 }
 
 // SetUserMode set user mode such weather, indoor
-func (b *Bme280) SetUserMode(mode int) (err error) {
+func (b *Bme280) SetUserMode(mode UserMode) (err error) {
 	b.userMode = UserMode(mode)
 	set := b.userMode.getModeSetting()
 	b.sensorMode = set.sensorMode
 	b.filter = set.filter
+	b.timeStandby = set.timeStandby
 
 	buf := []byte{
 		regAddrCtrlMeas, byte(set.os["Temperature"])<<5 | byte(set.os["Pressure"])<<2 | byte(Sleep),
 		regAddrCtrlHum, byte(set.os["Humidity"]),
-		regAddrConfig, byte(TSb1000)<<5 | byte(b.filter)<<2,
+		regAddrConfig, byte(b.timeStandby)<<5 | byte(b.filter)<<2,
 		regAddrCtrlMeas, byte(set.os["Temperature"])<<5 | byte(set.os["Pressure"])<<2 | byte(b.sensorMode),
 	}
 	err = b.writeToRegister(buf)
