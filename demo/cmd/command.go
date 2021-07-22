@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/egpwg/bme280-driver/demo/model"
@@ -19,16 +20,16 @@ func Command(c string) (bool, error) {
 			return true, err
 		}
 	case "setmode":
-		modErr := fmt.Errorf("Only support weather mode(input 1 or weather)")
 		if len(cList) != 2 {
-			return false, modErr
+			return false, fmt.Errorf(
+				"Please input mode in[1:Weather,2:Humisensing,3:Indoor,4:Gaming]!")
 		}
-		if cList[1] == "1" || cList[1] == "weather" {
-			if err := model.SetUserMode(model.UMWeather); err != nil {
-				return false, err
-			}
-		} else {
-			return false, modErr
+		mode, err := strconv.Atoi(cList[1])
+		if err != nil {
+			return false, err
+		}
+		if err := model.SetUserMode(mode); err != nil {
+			return false, err
 		}
 	case "all":
 		data, err := model.All()
@@ -123,5 +124,5 @@ func Pressure() error {
 func singleInit() {
 	model.Init()
 	// model.Reset()
-	model.SetUserMode(model.UMWeather)
+	model.SetUserMode(1)
 }

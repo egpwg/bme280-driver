@@ -1,20 +1,15 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/egpwg/bme280-driver/pkg/device"
 	"github.com/egpwg/bme280-driver/pkg/driver"
 	"github.com/egpwg/bme280-driver/pkg/driver/i2c"
 )
 
-type UserMode uint8
-
 var globalBME280 *device.Bme280
 var globalBus i2c.Bus
-
-const (
-	UMWeather     UserMode = 1
-	UMHumiSensing UserMode = 2
-)
 
 type SensorValue struct {
 	Sequence []string
@@ -53,11 +48,14 @@ func Init() error {
 	return nil
 }
 
-func SetUserMode(m UserMode) error {
+func SetUserMode(m int) error {
 	// 设置用户模式：Weather、Indoor、HumiSensing、Gaming
 	// 目前只支持Weather模式
 	// 传入数字代表不同模式，1为Weather，2为HumiSensing，3为Indoor，4为Gaming
-	err := GlobalBME280().SetUserMode(int(m))
+	if m < 1 || m > 4 {
+		return fmt.Errorf("Please set mode in[1:Weather,2:Humisensing,3:Indoor,4:Gaming]!")
+	}
+	err := GlobalBME280().SetUserMode(device.UserMode(m))
 	if err != nil {
 		return err
 	}
