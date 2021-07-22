@@ -90,8 +90,8 @@ func (m UserMode) getModeSetting() (set *modeSetting) {
 		os["Pressure"] = Oversampling4
 		os["Humidity"] = Skipped
 		filter = FilterCoef16
-		sensorMode = Forced
-		timeStandby = TSb1000
+		sensorMode = Normal
+		timeStandby = TSb0point5
 	}
 
 	return &modeSetting{
