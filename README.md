@@ -47,8 +47,7 @@ func main() {
     }
     
     // 设置用户模式：Weather、Indoor、HumiSensing、Gaming
-    // 目前只支持Weather模式
-    // 传入数字代表不同模式，1为Weather，2为HumiSensing，3为Indoor，4为Gaming
+    // 传入类型代表不同模式，UMWeather为Weather，UMHumiSensing为HumiSensing，UMIndoor为Indoor，UMGaming为Gaming
     err := bme280.SetUserMode(1)
     if err != nil {
         log.Fatal(err)
