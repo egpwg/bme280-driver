@@ -27,7 +27,7 @@ func TestSetUserMode(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	err = dev.SetUserMode(1)
+	err = dev.SetUserMode(UMIndoor)
 	if err != nil {
 		log.Fatal(err)
 	}

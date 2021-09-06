@@ -29,10 +29,10 @@ const (
 type UserMode int
 
 const (
-	Weather UserMode = iota + 1
-	HumiSensing
-	Indoor
-	Gaming
+	UMWeather UserMode = iota + 1
+	UMHumiSensing
+	UMIndoor
+	UMGaming
 )
 
 type Oversampling uint8
@@ -49,34 +49,56 @@ const (
 )
 
 type modeSetting struct {
-	os         map[string]Oversampling
-	filter     FilterCoef
-	sensorMode SensorMode
+	os          map[string]Oversampling
+	filter      FilterCoef
+	sensorMode  SensorMode
+	timeStandby TimeStandby
 }
 
 func (m UserMode) getModeSetting() (set *modeSetting) {
 	var (
-		os         = make(map[string]Oversampling)
-		filter     FilterCoef
-		sensorMode SensorMode
+		os          = make(map[string]Oversampling)
+		filter      FilterCoef
+		sensorMode  SensorMode
+		timeStandby TimeStandby
 	)
 
 	switch m {
-	case Weather:
+	case UMWeather:
 		os["Temperature"] = Oversampling1
 		os["Pressure"] = Oversampling1
 		os["Humidity"] = Oversampling1
 		filter = FilterCoefOff
 		sensorMode = Forced
-	case HumiSensing:
-	case Indoor:
-	case Gaming:
+		timeStandby = TSb1000
+	case UMHumiSensing:
+		os["Temperature"] = Oversampling1
+		os["Pressure"] = Skipped
+		os["Humidity"] = Oversampling1
+		filter = FilterCoefOff
+		sensorMode = Forced
+		timeStandby = TSb1000
+	case UMIndoor:
+		os["Temperature"] = Oversampling2
+		os["Pressure"] = Oversampling16
+		os["Humidity"] = Oversampling1
+		filter = FilterCoef16
+		sensorMode = Normal
+		timeStandby = TSb0point5
+	case UMGaming:
+		os["Temperature"] = Oversampling1
+		os["Pressure"] = Oversampling4
+		os["Humidity"] = Skipped
+		filter = FilterCoef16
+		sensorMode = Normal
+		timeStandby = TSb0point5
 	}
 
 	return &modeSetting{
-		os:         os,
-		filter:     filter,
-		sensorMode: sensorMode,
+		os:          os,
+		filter:      filter,
+		sensorMode:  sensorMode,
+		timeStandby: timeStandby,
 	}
 }
 
